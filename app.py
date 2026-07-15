@@ -14,23 +14,26 @@ load_dotenv()
 st.markdown("""
 <style>
   .main-header {
-       font-size: 4.5rem;
+       font-size: 5rem;
        font-weight: 900;
        color: #00D4FF;
        text-align: center;
-       margin-bottom: 0.5rem;
-        letter-spacing: 1px;
+       margin-bottom: 0.3rem;
+        letter-spacing: 2px;
+        text-shadow: 0 0 15px
    }
   .icon-header {
-       font-size: 4rem; /* Icon ko bara kiya */
+       font-size: 6rem; /* Icon ko bara kiya */
        vertical-align: middle;
-       margin-right: 15px;
+       margin-right: 25px;
+       filter: drop-shadow: (0 0 15px  #00D4FF);     
    }
   .sub-header {
-       font-size: 1.1rem;
-       color: #A0A0A0;
+       font-size: 1.5rem;
+       color: #BOBOBO;
        text-align: center;
-       margin-bottom: 2.5rem;
+       margin-bottom: 3rem;
+       font-weight: 500;     
    }
   .stButton>button {
        width: 100%;
