@@ -10,24 +10,51 @@ from dotenv import load_dotenv
 st.set_page_config(page_title="AI Data Assistant", layout="wide", page_icon="🤖")
 load_dotenv()
 
-# Custom CSS for better UI
+# Custom CSS for better UI - DECENT HEADER
 st.markdown("""
 <style>
-   .main-header {font-size:3rem; color:#4F8BF9; text-align: center;}
-   .sub-header {font-size:1.2rem; color:gray; text-align: center; margin-bottom: 2rem;}
-   .stButton>button {width: 100%; background-color: #4F8BF9; color: white; border-radius: 10px;}
+  .main-header {
+       font-size: 3.2rem;
+       font-weight: 800;
+       color: #00D4FF;
+       text-align: center;
+       margin-bottom: 0.2rem;
+   }
+  .icon-header {
+       font-size: 4rem; /* Icon ko bara kiya */
+       vertical-align: middle;
+       margin-right: 15px;
+   }
+  .sub-header {
+       font-size: 1.1rem;
+       color: #A0A0A0;
+       text-align: center;
+       margin-bottom: 2.5rem;
+   }
+  .stButton>button {
+       width: 100%;
+       background-color: #4F8BF9;
+       color: white;
+       border-radius: 10px;
+       font-weight: 600;
+       border: none;
+       padding: 0.6rem;
+   }
+  .stButton>button:hover {
+       background-color: #3A7BE0;
+   }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="main-header">🤖 AI Data Analysis Assistant</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Upload CSV, Ask Questions, Generate Charts + Get AI Explanation</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-header"><span class="icon-header">🤖</span> AI Data Analysis Assistant</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">Upload CSV • Ask Questions • Generate Charts • Get AI Explanation</p>', unsafe_allow_html=True)
 
 # Configure Gemini API
 @st.cache_resource
 def setup_gemini():
     try:
         genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-        model = genai.GenerativeModel('gemini-3.5-flash') # gemini-3.5-flash abhi nahi hai, 1.5-flash best hai
+        model = genai.GenerativeModel('gemini-1.5-flash') # Fixed model name
         return model, True
     except Exception as e:
         st.sidebar.error(f"API Key error: {e}")
@@ -35,7 +62,7 @@ def setup_gemini():
 
 model, api_available = setup_gemini()
 if api_available:
-    st.sidebar.success("✅ AI Model: gemini-3.5-flash Connected")
+    st.sidebar.success("✅ AI Model: gemini-1.5-flash Connected")
 
 # Sidebar
 with st.sidebar:
