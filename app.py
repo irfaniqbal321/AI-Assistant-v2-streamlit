@@ -14,11 +14,12 @@ load_dotenv()
 st.markdown("""
 <style>
   .main-header {
-       font-size: 3.2rem;
-       font-weight: 800;
+       font-size: 4.5rem;
+       font-weight: 900;
        color: #00D4FF;
        text-align: center;
-       margin-bottom: 0.2rem;
+       margin-bottom: 0.5rem;
+        letter-spacing: 1px;
    }
   .icon-header {
        font-size: 4rem; /* Icon ko bara kiya */
