@@ -58,7 +58,7 @@ st.markdown('<p class="sub-header">Upload CSV • Ask Questions • Generate Cha
 def setup_gemini():
     try:
         genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-        model = genai.GenerativeModel('gemini-1.5-flash') # Fixed model name
+        model = genai.GenerativeModel('gemini-3.5-flash') # Fixed model name
         return model, True
     except Exception as e:
         st.sidebar.error(f"API Key error: {e}")
@@ -66,7 +66,7 @@ def setup_gemini():
 
 model, api_available = setup_gemini()
 if api_available:
-    st.sidebar.success("✅ AI Model: gemini-1.5-flash Connected")
+    st.sidebar.success("✅ AI Model: gemini-3.5-flash Connected")
 
 # Sidebar
 with st.sidebar:
