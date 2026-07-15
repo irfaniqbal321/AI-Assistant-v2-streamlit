@@ -97,7 +97,7 @@ if uploaded_file is not None:
                 fig, ax = plt.subplots(figsize=(10, 5))
                 sns.set_style("whitegrid")
                 if chart_type == "Bar Chart":
-                    sns.barplot(data=df, x=x_axis, y=y_axis, estimator='mean', ax=ax, palette="Blues_d")
+                    sns.barplot(data=df, x=x_axis, y=y_axis, estimator='mean', ax=ax, hue=x_axis, palette="Blues_d", legend=False)
                 else:
                     sns.lineplot(data=df, x=x_axis, y=y_axis, estimator='mean', ax=ax, marker='o')
 

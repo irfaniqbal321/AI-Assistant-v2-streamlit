@@ -1,5 +1,5 @@
-    streamlit
-    pandas
-    matplotlib
-    google-generativeai
-    python-dotenv
+streamlit
+pandas
+matplotlib
+seaborn
+google-generativeai
