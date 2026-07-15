@@ -1,95 +1,136 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# Load.env file
+# Page Config
+st.set_page_config(page_title="AI Data Assistant", layout="wide", page_icon="🤖")
 load_dotenv()
 
-st.set_page_config(page_title="AI Data Assistant", layout="wide")
-st.title("🤖 AI Data Analysis Assistant")
+# Custom CSS for better UI
+st.markdown("""
+<style>
+   .main-header {font-size:3rem; color:#4F8BF9; text-align: center;}
+   .sub-header {font-size:1.2rem; color:gray; text-align: center; margin-bottom: 2rem;}
+   .stButton>button {width: 100%; background-color: #4F8BF9; color: white; border-radius: 10px;}
+</style>
+""", unsafe_allow_html=True)
 
-# Configure Gemini API - FORCE WORKING MODEL
-try:
-    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+st.markdown('<p class="main-header">🤖 AI Data Analysis Assistant</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">Upload CSV, Ask Questions, Generate Charts + Get AI Explanation</p>', unsafe_allow_html=True)
 
-    # Naye users ke liye ye 2 models pakka chalte hain
-    model = genai.GenerativeModel('gemini-3.5-flash')
-
-    api_available = True
-    st.sidebar.success("Using Model: gemini-3.5-flash")
-
-except Exception as e:
-    api_available = False
-    st.error(f"API Key error: {e}")
-    st.info("Tip:.env file me key check karo")
-
-# Function for Step 5: AI Explanation
-def generate_ai_explanation(df, x_col, y_col):
-    if not api_available:
-        st.error("API Key missing hai")
-        return
-
+# Configure Gemini API
+@st.cache_resource
+def setup_gemini():
     try:
-        data = df.groupby(x_col)[y_col].mean().round(2).to_dict()
-        prompt = f"""
-        You are a data analyst.
-        Chart: Average of '{y_col}' grouped by '{x_col}'
-        Data: {data}
-        Task: Write 2 simple lines explaining what the chart shows. Use Urdu-English mix. No jargon.
-        """
-
-        with st.spinner("AI is thinking..."):
-            response = model.generate_content(prompt)
-            st.success("**AI Explanation:** " + response.text)
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        model = genai.GenerativeModel('gemini-3.5-flash') # gemini-3.5-flash abhi nahi hai, 1.5-flash best hai
+        return model, True
     except Exception as e:
-        st.error(f"AI se jawab nahi mila: {e}")
+        st.sidebar.error(f"API Key error: {e}")
+        return None, False
 
-# 1. CSV Upload
-uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+model, api_available = setup_gemini()
+if api_available:
+    st.sidebar.success("✅ AI Model: gemini-3.5-flash Connected")
 
+# Sidebar
+with st.sidebar:
+    st.header("📁 File Upload")
+    uploaded_file = st.file_uploader("CSV file upload karo", type=["csv"])
+    st.markdown("---")
+    st.info("Tip: CSV me 1 text aur 1 numeric column ho to chart best banega")
+
+# Main Logic
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
-    st.subheader("Dataset Preview")
-    st.dataframe(df.head())
-    st.subheader("Dataset Info")
-    st.write(f"Rows: {df.shape[0]} | Columns: {df.shape[1]}")
 
-    # 2. Predefined Questions
-    st.subheader("Ask Questions")
-    question = st.selectbox("Select a question:", [
-        "Show basic statistics","Show column names and data types",
-        "Find missing values","Show correlation between numeric columns"
-    ])
-    if st.button("Get Answer"):
-        if question == "Show basic statistics": st.write(df.describe()); answer = "Ye table me har numeric column ka mean, min, max aur count hai."
-        elif question == "Show column names and data types": st.write(df.dtypes); answer = "Ye har column ka naam aur uska data type hai."
-        elif question == "Find missing values": st.write(df.isnull().sum()); answer = "Ye batata hai har column me kitne khali cells hain."
-        elif question == "Show correlation between numeric columns": st.write(df.corr(numeric_only=True)); answer = "Ye batata hai kaunse columns ek dusre se related hain."
-        st.success(f"Explanation: {answer}")
+    # TABS for clean UI
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 Data Preview", "❓ Q&A", "📈 Charts", "🧠 AI Insights"])
 
-    # 3. Generate Chart
-    st.subheader("📊 Auto Chart")
-    numeric_cols = df.select_dtypes(include='number').columns.tolist()
-    categorical_cols = df.select_dtypes(include='object').columns.tolist()
+    with tab1:
+        st.subheader("Dataset Preview")
+        st.dataframe(df.head(10), use_container_width=True)
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Rows", df.shape[0])
+        col2.metric("Total Columns", df.shape[1])
+        col3.metric("Missing Values", df.isnull().sum().sum())
 
-    if len(numeric_cols) > 0 and len(categorical_cols) > 0:
-        col1, col2 = st.columns(2)
-        with col1: x_axis = st.selectbox("X-axis - Category", categorical_cols)
-        with col2: y_axis = st.selectbox("Y-axis - Number", numeric_cols)
+    with tab2:
+        st.subheader("Ask Questions")
+        question = st.selectbox("Select a question:", [
+            "Show basic statistics",
+            "Show column names and data types",
+            "Find missing values",
+            "Show correlation between numeric columns"
+        ])
+        if st.button("Get Answer"):
+            if question == "Show basic statistics":
+                st.write(df.describe())
+                answer = "Ye table me har numeric column ka mean, min, max aur count hai."
+            elif question == "Show column names and data types":
+                st.write(df.dtypes)
+                answer = "Ye har column ka naam aur uska data type hai."
+            elif question == "Find missing values":
+                st.write(df.isnull().sum())
+                answer = "Ye batata hai har column me kitne khali cells hain."
+            elif question == "Show correlation between numeric columns":
+                st.write(df.corr(numeric_only=True))
+                answer = "Ye batata hai kaunse columns ek dusre se related hain."
+            st.success(f"💡 Explanation: {answer}")
 
-        if st.button("Generate Chart"):
-            fig, ax = plt.subplots(figsize=(8, 5))
-            df.groupby(x_axis)[y_axis].mean().plot(kind='bar', ax=ax, color='skyblue')
-            plt.title(f"Average {y_axis} by {x_axis}"); plt.xlabel(x_axis); plt.ylabel(f"Average {y_axis}"); plt.xticks(rotation=45)
-            st.pyplot(fig)
+    with tab3:
+        st.subheader("📊 Auto Chart Generator")
+        numeric_cols = df.select_dtypes(include='number').columns.tolist()
+        categorical_cols = df.select_dtypes(include='object').columns.tolist()
 
-            st.subheader("Step 5: AI Result Explanation")
-            generate_ai_explanation(df, x_axis, y_axis)
-    else:
-        st.warning("Chart ke liye 1 numeric aur 1 text column chahiye")
+        if len(numeric_cols) > 0 and len(categorical_cols) > 0:
+            col1, col2 = st.columns(2)
+            with col1: x_axis = st.selectbox("X-axis - Category", categorical_cols)
+            with col2: y_axis = st.selectbox("Y-axis - Number", numeric_cols)
+            chart_type = st.radio("Chart Type", ["Bar Chart", "Line Chart"], horizontal=True)
+
+            if st.button("Generate Chart"):
+                fig, ax = plt.subplots(figsize=(10, 5))
+                sns.set_style("whitegrid")
+                if chart_type == "Bar Chart":
+                    sns.barplot(data=df, x=x_axis, y=y_axis, estimator='mean', ax=ax, palette="Blues_d")
+                else:
+                    sns.lineplot(data=df, x=x_axis, y=y_axis, estimator='mean', ax=ax, marker='o')
+
+                plt.title(f"Average {y_axis} by {x_axis}", fontsize=14)
+                plt.xlabel(x_axis); plt.ylabel(f"Average {y_axis}"); plt.xticks(rotation=45)
+                st.pyplot(fig)
+                st.session_state['last_chart_data'] = (df, x_axis, y_axis) # Save for AI tab
+        else:
+            st.warning("⚠️ Chart ke liye 1 numeric aur 1 text column chahiye")
+
+    with tab4:
+        st.subheader("🧠 AI Result Explanation")
+        if api_available and 'last_chart_data' in st.session_state:
+            df_ai, x_col, y_col = st.session_state['last_chart_data']
+            if st.button("Explain This Chart with AI"):
+                try:
+                    data = df_ai.groupby(x_col)[y_col].mean().round(2).to_dict()
+                    prompt = f"""
+                    You are a friendly data analyst.
+                    Chart: Average of '{y_col}' grouped by '{x_col}'
+                    Data: {data}
+                    Task: Write 3 simple lines in Roman Urdu-English mix explaining what the chart shows. No jargon. Start with "Dekho jani..."
+                    """
+                    with st.spinner("AI is thinking..."):
+                        response = model.generate_content(prompt)
+                        st.success("**AI Explanation:**")
+                        st.write(response.text)
+                except Exception as e:
+                    st.error(f"AI se jawab nahi mila: {e}")
+        elif not api_available:
+            st.error("API Key missing hai..env file check karo")
+        else:
+            st.info("Pehle 'Charts' tab me chart generate karo, phir AI explanation aayegi")
 
 else:
-    st.info("Please upload a CSV file to start")
+    st.info("👆 Sidebar se CSV file upload karo shuru karne ke liye")
