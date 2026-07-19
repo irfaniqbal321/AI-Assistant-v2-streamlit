@@ -10,32 +10,32 @@ from dotenv import load_dotenv
 st.set_page_config(page_title="AI Data Assistant", layout="wide", page_icon="🤖")
 load_dotenv()
 
-# Custom CSS for better UI - DECENT HEADER
+# Custom CSS for better UI
 st.markdown("""
 <style>
-  .main-header {
-       font-size: 5rem;
+.main-header {
+       font-size: 3rem;
        font-weight: 900;
        color: #00D4FF;
        text-align: center;
        margin-bottom: 0.3rem;
-        letter-spacing: 2px;
-        text-shadow: 0 0 15px
+       letter-spacing: 2px;
+       text-shadow: 0 0 15px #00D4FF;
    }
-  .icon-header {
-       font-size: 6rem; /* Icon ko bara kiya */
+.icon-header {
+       font-size: 3.5rem;
        vertical-align: middle;
-       margin-right: 25px;
-       filter: drop-shadow: (0 0 15px  #00D4FF);     
+       margin-right: 15px;
+       filter: drop-shadow(0 0 15px #00D4FF);
    }
-  .sub-header {
-       font-size: 1.5rem;
-       color: #BOBOBO;
+.sub-header {
+       font-size: 1.2rem;
+       color: #B0B0B0;
        text-align: center;
        margin-bottom: 3rem;
-       font-weight: 500;     
+       font-weight: 500;
    }
-  .stButton>button {
+.stButton>button {
        width: 100%;
        background-color: #4F8BF9;
        color: white;
@@ -44,7 +44,7 @@ st.markdown("""
        border: none;
        padding: 0.6rem;
    }
-  .stButton>button:hover {
+.stButton>button:hover {
        background-color: #3A7BE0;
    }
 </style>
@@ -53,12 +53,20 @@ st.markdown("""
 st.markdown('<p class="main-header"><span class="icon-header">🤖</span> AI Data Analysis Assistant</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Upload CSV • Ask Questions • Generate Charts • Get AI Explanation</p>', unsafe_allow_html=True)
 
-# Configure Gemini API
+# Configure Gemini API with System Instruction - FINAL FIX
 @st.cache_resource
 def setup_gemini():
     try:
         genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-        model = genai.GenerativeModel('gemini-3.5-flash') # Fixed model name
+        model = genai.GenerativeModel(
+            'gemini-3.5-flash', # FINAL MODEL NAME
+            system_instruction="""Tum ek Professional AI Data Analyst Assistant ho. Naam: DataBot.
+            Sakht Rules:
+            1. Hamesha saaf, formal aur professional roman Urdu me jawab do.
+            2. "Jani", "yaar", "bhai", "dekho", emoji aur slang ka use sakhti se mana hai.
+            3. Jawab seedha, concise aur 3-4 lines me do.
+            4. Data ki baat karte waqt professional aur informative raho."""
+        )
         return model, True
     except Exception as e:
         st.sidebar.error(f"API Key error: {e}")
@@ -66,7 +74,7 @@ def setup_gemini():
 
 model, api_available = setup_gemini()
 if api_available:
-    st.sidebar.success("✅ AI Model: gemini-3.5-flash Connected")
+    st.sidebar.success("✅ AI Model: gemini-2.0-flash Connected")
 
 # Sidebar
 with st.sidebar:
@@ -147,12 +155,15 @@ if uploaded_file is not None:
                 try:
                     data = df_ai.groupby(x_col)[y_col].mean().round(2).to_dict()
                     prompt = f"""
-                    You are a friendly data analyst.
+                    Tum ek professional Data Analyst ho.
                     Chart: Average of '{y_col}' grouped by '{x_col}'
                     Data: {data}
-                    Task: Write 3 simple lines in Roman Urdu-English mix explaining what the chart shows. No jargon. Start with "Dekho jani..."
+
+                    Task: Is chart ko 3 lines me explain karo saaf Urdu me.
+                    Koi slang, "jani", "yaar" use mat karo.
+                    Pehle overall trend batao, phir sabse zyada aur sabse kam value ka zikr karo.
                     """
-                    with st.spinner("AI is thinking..."):
+                    with st.spinner("AI is analyzing..."):
                         response = model.generate_content(prompt)
                         st.success("**AI Explanation:**")
                         st.write(response.text)
